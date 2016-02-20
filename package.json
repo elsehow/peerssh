@@ -1,0 +1,17 @@
+{
+  "name": "peerssh",
+  "version": "1.0.0",
+  "main": "pubsub-host.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "garage-door-opener": "^1.0.2",
+    "minimist": "^1.2.0",
+    "request-json": "^0.5.5",
+    "socket.io-client": "^1.4.5",
+    "sync-request": "^3.0.0"
+  }
+}

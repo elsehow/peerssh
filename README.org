@@ -1,0 +1,112 @@
+* peerssh
+** imagine we want to execute commands on a remote computer
+*** but we don't want anyone else to be able to
+*** complicating matters, this computer doesn't have a static hostname
+*** and neither do we
+**** familiar problem to people who write malicious software, like randsomeware
+** this paper demonstrates a simple way to send a command over a publically accessible channel
+*** using properties of good PRNG 
+* TODO walk through basic idea of garage door opener
+** introduce how car garage door openers work
+** show our basic implementation in js
+* imeplementing peerssh
+** TODO introduce indra
+*** [[https://github.com/berkeley-biosense/indra-server][indra server]] on github
+*** TODO it's running at this address
+#+BEGIN_SRC js :tangle pubsub-host-config.js
+module.exports = "http://indra.webfactional.com"
+#+END_SRC
+yeah, yeah, it's not using https... well, we shouldn't really have to run https! cryptographically secure and all that
+*** it's very simple - it takes subscribers over web sockets
+*** and accepts post requests over this route
+**** the =key= field in json post relates to client subscription
+**** essentially the channel the message is published on 
+** receiver
+#+BEGIN_SRC js :tangle receiver.js
+'use strict';
+
+// parse command line opts
+var argv = require('minimist')(process.argv.slice(2))
+// host uri for pubsub server
+var host = require('./pubsub-host-config.js')
+
+// takes a seed -s and a start index -i over the command line
+var garagedoor = require('garage-door-opener')
+// the sender is responsible for generating codes
+var receiver = garagedoor.receiver(argv.s, argv.i)
+
+// connect to socket server
+var socket = require('socket.io-client')(host)
+socket.on('connect', () => {
+  socket.on('public-channel', (msg) => {
+    if (receiver.check(msg.key))
+      console.log('key ok!', msg)
+    else
+      console.log('key not ok!', msg)
+  })
+  console.log('listening for commands')
+})
+
+#+END_SRC
+*** TODO test simple config
+*** TODO test listening to different channels
+*** TODO test exec-ing commands
+** sender
+#+BEGIN_SRC js :tangle sender.js
+// parse command line opts
+var argv = require('minimist')(process.argv.slice(2))
+// host uri for pubsub server
+var host = require('./pubsub-host-config.js')
+
+// takes a seed -s and a start index -i over the command line
+var garagedoor = require('garage-door-opener')
+// the sender is responsible for generating codes
+var sender = garagedoor.sender(argv.s, argv.i)
+// we'll send over this key initially
+
+// a client for sending messages to the listener
+var client = require('request-json')
+               .createClient(host)
+
+// read each newline
+var readline = require('readline')
+var rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  terminal: false
+});
+
+rl.on('line', function(line){
+  var payload = { 
+    type: 'public-channel',
+    key: sender.next(),
+  }
+  
+  client.post('/', payload, (err, res, body) => {
+    console.log('posted',body)
+  })
+})
+
+
+#+END_SRC
+*** script loads config and listens to stdin
+*** splits stdin on newline and posts each bit as a command
+*** subscribes to responses
+*** =req.pipe(process.stdout)=
+* limitations
+** subscribing to the pubsub server creates a clear vulnerability
+*** subscription key is stored in memory
+* tradeoffs between lookahead and security?
+
+
+* TODO WAIT!!!
+
+** we dont want to be doing this with socket.io
+
+** whta if it gets ahead?
+
+** no, we want to be sending over a /public/ channel
+
+*** commands /signed/ with a key
+
+*** then it should work as we expect
