@@ -1,15 +1,14 @@
 * peerssh
 ** imagine we want to execute commands on a remote computer
-*** but we don't want anyone else to be able to
-*** complicating matters, this computer doesn't have a static hostname
-*** and neither do we
-**** familiar problem to people who write malicious software, like randsomeware
-** this paper demonstrates a simple way to send a command over a publically accessible channel
-*** using properties of good PRNG 
-* TODO walk through basic idea of garage door opener
+** but we don't want anyone else to be able to
+** complicating matters, this computer doesn't have a static hostname
+** and neither do we
+*** (a familiar problem to people who write malicious software, like randsomeware)
+** here i demonstrate a simple way to send a command over a publically accessible channel using a good PRNG 
+* walk through basic idea of garage door opener
 ** introduce how car garage door openers work
 ** show our basic implementation in js
-* imeplementing peerssh
+* TODO imeplementing peerssh
 ** TODO introduce indra
 *** [[https://github.com/berkeley-biosense/indra-server][indra server]] on github
 *** TODO it's running at this address
@@ -21,7 +20,7 @@ yeah, yeah, it's not using https... well, we shouldn't really have to run https!
 *** and accepts post requests over this route
 **** the =key= field in json post relates to client subscription
 **** essentially the channel the message is published on 
-** receiver
+** TODO receiver
 #+BEGIN_SRC js :tangle receiver.js
 'use strict';
 
@@ -51,7 +50,7 @@ socket.on('connect', () => {
 *** TODO test simple config
 *** TODO test listening to different channels
 *** TODO test exec-ing commands
-** sender
+** TODO sender
 #+BEGIN_SRC js :tangle sender.js
 // parse command line opts
 var argv = require('minimist')(process.argv.slice(2))
@@ -93,20 +92,14 @@ rl.on('line', function(line){
 *** splits stdin on newline and posts each bit as a command
 *** subscribes to responses
 *** =req.pipe(process.stdout)=
+* cracking peerssh
+** forced to do a very long exhaustive search
+*** can simulate this / talk about complexity
 * limitations
-** subscribing to the pubsub server creates a clear vulnerability
-*** subscription key is stored in memory
-* tradeoffs between lookahead and security?
-
-
-* TODO WAIT!!!
-
-** we dont want to be doing this with socket.io
-
-** whta if it gets ahead?
-
-** no, we want to be sending over a /public/ channel
-
-*** commands /signed/ with a key
-
-*** then it should work as we expect
+** no ssh
+** no encryption in response
+** tradeoffs between lookahead and security?
+* implications
+** perfect for your botnet or randsomeware
+** demonstrates the elegant simplicty of a rolling code
+*** and the nice propreties of a good PRNG
