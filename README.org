@@ -11,7 +11,8 @@
 *** even though output is deterministic given a seed
 **** if this seems like a contradiction to you, refer to []
 ** show our basic implementation in js
-* TODO imeplementing peerssh
+* DONE coordinating an action over a public channel
+CLOSED: [2016-02-20 Sat 20:39]
 ** TODO introduce indra
 *** [[https://github.com/berkeley-biosense/indra-server][indra server]] on github
 *** TODO it's running at this address
@@ -95,6 +96,12 @@ CLOSED: [2016-02-20 Sat 20:37]
 *** splits stdin on newline and posts each bit as a command
 *** subscribes to responses
 *** =req.pipe(process.stdout)=
+* running shell commands over a public channel
+* authenticating a peer relationship over a public channel
+* peerscp
+** generating 2 binaries - a receiver and a sender
+** distributing them - to be kept secret, like a key
+** note that you can replicate the sender - authenticate multiple computers
 * cracking peerssh
 ** forced to do a very long exhaustive search
 *** can simulate this / talk about complexity
