@@ -7,6 +7,9 @@
 ** here i demonstrate a simple way to send a command over a publically accessible channel using a good PRNG 
 * walk through basic idea of garage door opener
 ** introduce how car garage door openers work
+*** output of a prng indistinguishable from noise
+*** even though output is deterministic given a seed
+**** if this seems like a contradiction to you, refer to []
 ** show our basic implementation in js
 * TODO imeplementing peerssh
 ** TODO introduce indra
@@ -20,7 +23,8 @@ yeah, yeah, it's not using https... well, we shouldn't really have to run https!
 *** and accepts post requests over this route
 **** the =key= field in json post relates to client subscription
 **** essentially the channel the message is published on 
-** TODO receiver
+** DONE receiver
+CLOSED: [2016-02-20 Sat 20:37]
 #+BEGIN_SRC js :tangle receiver.js
 'use strict';
 
@@ -45,48 +49,47 @@ socket.on('connect', () => {
   })
   console.log('listening for commands')
 })
-
 #+END_SRC
 *** TODO test simple config
 *** TODO test listening to different channels
 *** TODO test exec-ing commands
-** TODO sender
+** DONE sender
+CLOSED: [2016-02-20 Sat 20:37]
 #+BEGIN_SRC js :tangle sender.js
-// parse command line opts
-var argv = require('minimist')(process.argv.slice(2))
-// host uri for pubsub server
-var host = require('./pubsub-host-config.js')
+  'use strict';
 
-// takes a seed -s and a start index -i over the command line
-var garagedoor = require('garage-door-opener')
-// the sender is responsible for generating codes
-var sender = garagedoor.sender(argv.s, argv.i)
-// we'll send over this key initially
+  var split = require('split')
+  // parse command line opts
+  var argv = require('minimist')(process.argv.slice(2))
+  // host uri for pubsub server
+  var host = require('./pubsub-host-config.js')
 
-// a client for sending messages to the listener
-var client = require('request-json')
-               .createClient(host)
+  // takes a seed -s and a start index -i over the command line
+  var garagedoor = require('garage-door-opener')
+  // the sender is responsible for generating codes
+  var sender = garagedoor.sender(argv.s, argv.i)
 
-// read each newline
-var readline = require('readline')
-var rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: false
-});
+  // a client for sending messages to the listener
+  var client = require('request-json')
+                 .createClient(host)
 
-rl.on('line', function(line){
-  var payload = { 
-    type: 'public-channel',
-    key: sender.next(),
+  // posts a message with our sender key
+  function post (cmd) {
+    var payload = { 
+      type: 'public-channel', // the public channel on which we're broadcasting
+      key: sender.next(),     // our new key
+      eval: cmd.toString()
+    }
+    client.post('/', payload, (err, res, body) => {
+      if (err)
+        console.log('ERR!', err)
+      else
+        console.log('posted')
+    })
   }
-  
-  client.post('/', payload, (err, res, body) => {
-    console.log('posted',body)
-  })
-})
 
-
+  // post data whenever user presses return 
+  process.stdin.pipe(split()).on('data', post)
 #+END_SRC
 *** script loads config and listens to stdin
 *** splits stdin on newline and posts each bit as a command

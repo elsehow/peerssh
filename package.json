@@ -12,6 +12,7 @@
     "minimist": "^1.2.0",
     "request-json": "^0.5.5",
     "socket.io-client": "^1.4.5",
+    "split": "^1.0.0",
     "sync-request": "^3.0.0"
   }
 }
